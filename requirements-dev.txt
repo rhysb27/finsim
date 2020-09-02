@@ -1,0 +1,5 @@
+-i https://pypi.org/simple
+pytest==3.9.2
+coverage==4.5.2
+pytest-cov==2.5.1
+codecov
