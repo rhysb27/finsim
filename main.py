@@ -1,10 +1,10 @@
-from finsim import ui
+from finsim.ui import UI
 from finsim.simulation import Simulation
 from finsim.sim_data import SimData
 
-ui.initialise()
+UI.initialise()
 sim_data = SimData()
 simulation = Simulation(sim_data)
 
-ui.begin()
+UI.begin()
 simulation.simulate()

@@ -28,10 +28,10 @@ class TestSavingsAccounts(TestCase):
         accounts = SavingsAccounts(test_data)
         self.assertEqual(mock_acc_init.call_count, 2)
 
-    def test_pay(self, mock_debt_init):
+    def test_pay(self, mock_acc_init):
         mock_traditional = Mock()
         mock_lisa = Mock()
-        mock_debt_init.side_effect = [mock_traditional, mock_lisa]
+        mock_acc_init.side_effect = [mock_traditional, mock_lisa]
         accounts = SavingsAccounts(generate_test_data())
 
         accounts.deposit()
@@ -39,16 +39,26 @@ class TestSavingsAccounts(TestCase):
         mock_traditional.deposit.assert_called_once()
         mock_lisa.deposit.assert_called_once()
 
-    def test_total_saved(self, mock_debt_init):
+    def test_total_saved(self, mock_acc_init):
         mock_traditional = Mock()
         mock_traditional.balance = Decimal('1000')
         mock_lisa = Mock()
         mock_lisa.balance = Decimal('1500')
-        mock_debt_init.side_effect = [mock_traditional, mock_lisa]
+        mock_acc_init.side_effect = [mock_traditional, mock_lisa]
         accounts = SavingsAccounts(generate_test_data())
 
         result = accounts.total_saved()
         self.assertEqual(result, Decimal('2500'))
+
+    def test_to_list__all(self, mock_acc_init):
+        mock_traditional = Mock()
+        mock_lisa = Mock()
+        mock_acc_init.side_effect = [mock_traditional, mock_lisa]
+        accounts = SavingsAccounts(generate_test_data())
+
+        result = accounts.to_list()
+
+        self.assertListEqual(result, [mock_traditional, mock_lisa])
 
 
 class TestSavingsAccount(TestCase):

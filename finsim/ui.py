@@ -7,181 +7,244 @@ from finsim.debts import Debt
 class UserRequestedRestart(Exception):
     pass
 
-def initialise():
-    print('\n\t============[ INITIALISING SIMULATION ]=============\n')
+class UI:
 
-def begin():
-    print('Done\n')
-    print('\t====================================================')
-    print('\t================[ START SIMULATION ]================')
-    print('\t====================================================\n')
-    print('You can use the following commands at any time:\n')
-    print('\t\tRESTART STRATEGY: [R]\tQUIT: [Q]\n')
+    # -- Basic Output Functions -------------------------------------
 
-def display_annual_summary(model, year):
-    print('\t=================[ END OF YEAR {} ]=================\n'.format(year))
+    @staticmethod
+    def initialise():
+        print(UI._heading('INITIALISING SIMULATION', level=2))
 
-def display_final_summary(model, total_months):
-    years = total_months // 12
-    months = total_months % 12
-    print('\t====================================================')
-    print('\t=================[ END SIMULATION ]=================')
-    print('\t====================================================\n')
-    print('Goal acheievd in {} years and {} months.\n'.format(years, months))
+    @staticmethod
+    def begin():
+        print('Done')
+        print(UI._heading('START SIMULATION', level=1))
+        print('You can use the following commands at any time:\n')
+        print('\t\tRESTART STRATEGY: [R]\tQUIT: [Q]\n')
 
-def cancel():
-    print('\n\t====================================================')
-    print('\t===============[ CANCEL SIMULATION ]================')
-    print('\t====================================================\n')
+    @staticmethod
+    def cancel():
+        print(UI._heading('CANCEL SIMULATION', level=1))
 
-def obtain_initial_strategy(person):
-    print('\n\t----------------[ INITIAL STRATEGY ]----------------\n')
-    name = person.name
-    while True:
-        try:
-            print('Please provide an initial financial strategy for {}.'.format(name))
-            strategy = _obtain_strategy(person)
-            return strategy
-        except UserRequestedRestart:
-            print('\n\t--------------[ RESTARTING STRATEGY ]---------------\n')
+    @staticmethod
+    def end_year(model, year):
+        heading = UI._heading('END OF YEAR {}'.format(year), level=2)
+        print('Total saved to date: £{}'.format(model.total_saved()))
+        # TODO: Show annual report for each person
 
-def obtain_new_strategy(person):
-    print('\n\t------------------[ NEW STRATEGY ]------------------\n')
-    name = person.name
-    cleared_list = person.debts.recently_cleared
+    @staticmethod
+    def end(total_months):
+        years = total_months // 12
+        months = total_months % 12
+        print(UI._heading('END SIMULATION', level=1))
+        print('Goal achieved in {} years and {} months.\n'.format(years, months))
+        # TODO: Reference final report save location.
 
-    if len(cleared_list) == 0:
-        cleared_hint = ''
-    else:
-        if len(cleared_list) == 1:
-            cleared_string = cleared_list[0]
-            for_hint = ' for {}'.format(name)
+    # -- Initialisation Functions -----------------------------------
+    
+    @staticmethod
+    def obtain_savings_goal():
+        print('Please provide a savings goal.\n')
+        acceptable = False
+        while not acceptable:
+            user_input = input('\t£')
+            if user_input.upper() == 'Q':
+                UI.cancel()
+                exit()
+
+            try:
+                goal = D(user_input)
+            except InvalidOperation:
+                print(UI._err('Please input a valid number or keyboard command.'))
+                continue
+
+            if goal <= D('0'):
+                print(UI._err('Please enter a savings goal greater than 0.'))
+            else:
+                acceptable = True
+
+        return goal
+
+
+    # -- Strategy Functions -----------------------------------------
+
+    def obtain_initial_strategy(self, person):
+        self._prepare_data_for_strategy(person)
+        print(UI._heading('INITIAL STRATEGY', level=3))
+        while True:
+            try:
+                print('Please provide an initial financial strategy for {}.'.format(person.name))
+                strategy = self._obtain_strategy()
+                return strategy
+            except UserRequestedRestart:
+                self._prepare_data_for_strategy(person)
+                print(UI._heading('RESTARTING STRATEGY', level=3))
+
+    def obtain_new_strategy(self, person):
+        self._prepare_data_for_strategy(person)
+        print(UI._heading('NEW STRATEGY', level=3))
+        print(self._new_strategy_hint())
+        print('Here is their previous strategy:\n')
+        print(self._summarise_strategy(person.current_strategy))
+
+        while True:
+            try:
+                strategy = self._obtain_strategy()
+                return strategy
+            except UserRequestedRestart:
+                self._prepare_data_for_strategy(person)
+                print(UI._heading('RESTARTING STRATEGY', level=3))
+                print('Please provide a new financial strategy for {}.'.format(person.name))
+
+
+    # -- Strategy Helpers -------------------------------------------
+
+    def _prepare_data_for_strategy(self, person):
+        self.current_person = person
+        self.recently_cleared = person.debts.recently_cleared
+        self.remaining_disposable = round_currency_to_pounds(person.disposable_income)
+        self.debts = person.debts.to_list()
+        self.savings = person.savings.to_list()
+        self.acc_padding = max( len(a.name) for a in (self.debts + self.savings) ) + 2
+        self.rem_padding = len(str(self.remaining_disposable))
+
+    def _new_strategy_hint(self):
+        cleared = self.recently_cleared
+        name = self.current_person.name
+        if len(cleared) == 0:
+            hint_template = 'Please provide a new strategy for {}.\n'
+            return hint_template.format(name)
+
+        if len(cleared) == 1:
+            cleared_string = cleared[0]
         else:
-            and_cleared = [cleared_list.pop(), cleared_list.pop()]
+            and_cleared = [ cleared.pop(), cleared.pop() ]
             and_string = '{} and {}'.format(and_cleared[1], and_cleared[0])
-            cleared_list.append(and_string)
-            cleared_string = ', '.join(cleared_list)
-        cleared_hint = '{} has paid off {}. '.format(name, cleared_string)
-        for_hint = ''
+            cleared.append(and_string)
+            cleared_string = ', '.join(cleared)
 
-    print('{}Please provide a new financial strategy{}.'.format(cleared_hint, for_hint))
+        hint_template = '{} has paid off {}. Please provide a new strategy for them.\n'
+        return hint_template.format(name, cleared_string)
 
-    # TODO: Print current strategy.
+    def _summarise_strategy(self, strategy):
+        summary = ''
+        item_template = '{} £{}'
+        line_template = '\t{}\n'
 
-    while True:
-        try:
-            strategy = _obtain_strategy(person)
-            return strategy
-        except UserRequestedRestart:
-            print('\n\t--------------[ RESTARTING STRATEGY ]---------------\n')
-            print('Please provide a new financial strategy for {}.'.format(name))
+        for item in (strategy.get('debts', []) + strategy['savings']):
+            padded_name = self._pad_name(item['name'])
+            item_str = item_template.format(padded_name, item['payment'])
+            if item['name'] in self.recently_cleared:
+                item_line = line_template.format(UI._strike(item_str))
+            else:
+                item_line = line_template.format(item_str)
+            summary += item_line
+            
 
-def _obtain_strategy(person):
-    name = person.name
-    disposable = round_currency_to_pounds(person.disposable_income)
-    debts = person.debts.get_active()
-    savings = person.savings_accounts.account_dict
-    name_padding_len = max(len(k) for k in ([debt.name for debt in debts] + list(savings.keys())))
-    amount_padding_len = len(str(disposable))
+        padded_name = self._pad_name('Remaining')
+        rem_line = item_template.format(padded_name, strategy['remaining'])
+        summary += line_template.format('-' * len(rem_line))
+        summary += line_template.format(rem_line)
+        return summary
 
-    line_1 = '{} has ~£{} disposable income per month and {} debts:\n'.format(name, disposable, len(debts))
-    line_2 = '\nFirst, please input a monthly repayment amount for each debt:\n'
-    line_3 = '\nNext, please input a monthly deposit for each savings account:\n'
-    line_4 = '\nThank you. Here’s a summary of {}’s monthly strategy:\n'.format(name)
-    line_5 = '\n    RESTART STRATEGY: [R]    QUIT: [Q]    CONFIRM: <any>\n'
-    line_6 = '\n\t---------------[ ACCEPTED  STRATEGY ]---------------'
+    def _obtain_strategy(self):    
+        strategy = {}
+        if len(self.debts) > 0:
+            debt_str = 'debt' if len(self.debts) == 1 else 'debts'
+            print('{} has ~£{} disposable income per month and {} {}:\n'.format(
+                self.current_person.name, self.remaining_disposable, len(self.debts), debt_str))
+            print(self.current_person.debts.to_string())
 
-    strategy = {}
-    
-    print(line_1)
-    _print_debt_summary(debts)
-    print(line_2)
-    strategy['debts'], rem_disposable = _obtain_account_payments(
-        debts,
-        disposable,
-        name_padding_len,
-        amount_padding_len)
-    print(line_3)
-    strategy['savings'], rem_disposable = _obtain_account_payments(
-        savings,
-        rem_disposable,
-        name_padding_len,
-        amount_padding_len)
-    print(line_4)
-    _print_strategy_summary(strategy)
-    print(line_5)
-    _handle_confirmation()
-    print(line_6)
-    return strategy
+            print('\nFirst, please input a monthly repayment amount for each debt:\n')
+            strategy['debts'] = self._obtain_account_payments(self.debts)
 
-
-def _print_debt_summary(debts):
-    # TODO: Refactor into Debts class?
-    padding_length = max(len(debt.name) for debt in debts) + 3
-    printout = ''
-    for debt in debts:
-        padded_name = '{}:'.format(debt.name).ljust(padding_length, ' ')
-        printout += '\t{} £{}\n'.format(padded_name, debt.balance)
-
-    print(printout)
-
-def _print_strategy_summary(strategy):
-    # TODO: Create strategy list object for final report.
-    # TODO: Inform user of remaining income at Completion
-    print('TODO')
-
-def _obtain_account_payments(accounts, initial_disposable, name_padding_len, amount_padding_len):
-    remaining_disposable = initial_disposable
-    payments = {}
-    prompt_template = '\t[£{} Remaining]    {} £'
-    # TODO: Sort out accounts being dict and debts being list
-    for name, account in accounts.items():
-        padded_amount = str(remaining_disposable).ljust(amount_padding_len)
-        padded_name = '{}:'.format(name).ljust(name_padding_len)
-        prompt = prompt_template.format(padded_amount, padded_name)
-        payment = _handle_user_input(prompt, name, remaining_disposable)
-        payments[name] = payment
-        remaining_disposable -= payment
-    
-    return payments, remaining_disposable
-
-def _handle_user_input(prompt, name, remaining_disposable):
-    acceptable = False
-    while not acceptable:
-        user_input = input(prompt)
-        if user_input.upper() == 'Q':
-            cancel()
-            exit()
-        elif user_input.upper() == 'R':
-            raise UserRequestedRestart()
-
-        try:
-            repayment = D(user_input)
-        except InvalidOperation:
-            reprompt = '\n[ ERROR ]: Please input a valid number or keyboard command.\n'
-            print(reprompt)
-            continue
-
-        if (remaining_disposable - repayment) <= D('0'):
-            reprompt = '\n[ ERROR ]: Amount for {} exceeds remaining disposable income. Please enter a valid value.\n'.format(name)
-            print(reprompt)
+            print('\nNext, please input a monthly deposit for each savings account:\n')
         else:
-            acceptable = True
+            print('{} has ~£{} disposable income per month.\n'.format(
+                self.current_person.name, self.remaining_disposable))
 
-    return repayment
+            print('\nPlease input a monthly deposit for each savings account:\n')
+        strategy['savings'] = self._obtain_account_payments(self.savings)
+        strategy['remaining'] = self.remaining_disposable
 
-def _handle_confirmation():
-    user_input = input('> ')
-    if user_input.upper() == 'R':
-        raise UserRequestedRestart()
-    elif user_input.upper() == 'Q':
-        cancel()
-        exit()
-    else:
-        return
+        print('\nThank you. Here’s a summary of {}’s monthly strategy:\n'.format(self.current_person.name))
+        print(self._summarise_strategy(strategy))
+        print('\n    RESTART STRATEGY: [R]    QUIT: [Q]    CONFIRM: <any>\n')
+        self._handle_confirmation()
 
-def _strike(text):
-    result = ''
-    for c in text:
-        result = result + c + '\u0336'
-    return result
+        print(UI._heading('ACCEPTED STRATEGY', level=3))
+        return strategy
+
+    def _obtain_account_payments(self, accounts):
+        payments = []
+        for account in accounts:
+            padded_amount = str(self.remaining_disposable).ljust(self.rem_padding)
+            padded_name = self._pad_name(account.name)
+            prompt = '\t[£{} Remaining]    {} £'.format(padded_amount, padded_name)
+            payment = self._handle_user_input(prompt)
+            payments.append({ 'name': account.name, 'payment': payment })
+            self.remaining_disposable -= payment
+
+        return payments
+
+    def _handle_user_input(self, prompt):
+        acceptable = False
+        while not acceptable:
+            user_input = input(prompt)
+            if user_input.upper() == 'Q':
+                UI.cancel()
+                exit()
+            elif user_input.upper() == 'R':
+                raise UserRequestedRestart()
+
+            try:
+                payment = D(user_input)
+            except InvalidOperation:
+                print(UI._err('Please input a valid number or keyboard command.'))
+                continue
+
+            if (self.remaining_disposable - payment) <= D('0'):
+                print(UI._err('Payment amount exceeds remaining disposable income. Please enter a valid value.'))
+            else:
+                acceptable = True
+
+        return payment
+
+    def _handle_confirmation(self):
+        user_input = input('> ')
+        if user_input.upper() == 'R':
+            raise UserRequestedRestart()
+        elif user_input.upper() == 'Q':
+            UI.cancel()
+            exit()
+        else:
+            return
+
+
+    # -- Formatters -------------------------------------------------
+
+    @staticmethod
+    def _heading(text, level):
+        width = 52
+        line_char = '=' if level <= 2 else '-'
+        main_line = '[ {} ]'.format(text).center(width, line_char)
+        if level == 1:
+            emphasis_line = line_char * width
+            heading = '\n\t{}\n\t{}\n\t{}\n'.format(emphasis_line, main_line, emphasis_line)
+        else:
+            heading = '\n\t{}\n'.format(main_line)
+        return heading
+
+    @staticmethod
+    def _strike(text):
+        result = ''
+        for c in text:
+            result = result + c + '\u0336'
+        return result
+
+    @staticmethod
+    def _err(text):
+        return '\n[ ERROR ]: {}\n'.format(text)
+
+    def _pad_name(self, account_name):
+        return '{}:'.format(account_name).ljust(self.acc_padding)

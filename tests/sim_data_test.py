@@ -44,10 +44,11 @@ class TestSimData(TestCase):
         test_data = generate_test_data()
         mock_json.return_value = test_data
         sim_data = SimData()
-        sim_data.group_mode = True
         
         mock_val_people.assert_called_once()
         mock_val_exp.assert_any_call(test_data['group']['expenses'])
+        self.assertEqual(sim_data.savings_goal, Decimal('10000'))
+
 
     @patch('finsim.sim_data.SimData._validate_people')
     @patch('finsim.sim_data.SimData._validate_expenses')
@@ -60,6 +61,45 @@ class TestSimData(TestCase):
         
         mock_val_people.assert_called_once()
         mock_val_exp.assert_not_called()
+        self.assertEqual(sim_data.savings_goal, Decimal('10000'))
+
+    @patch('finsim.sim_data.SimData._validate_people')
+    @patch('finsim.sim_data.SimData._validate_expenses')
+    def test_process__negative_savings_goal(self, mock_val_exp, mock_val_people, mock_json):
+        test_data = generate_test_data()
+        test_data['savings_goal'] = '-1000'
+        mock_json.return_value = test_data
+        
+        with self.assertRaises(DataImportError) as context:
+            sim_data = SimData()
+
+        expected_err = 'Savings Goal must be greater than Zero.'
+        self.assertEqual(expected_err, str(context.exception))
+
+    @patch('finsim.sim_data.SimData._validate_people')
+    @patch('finsim.sim_data.SimData._validate_expenses')
+    def test_process__invalid_savings_goal(self, mock_val_exp, mock_val_people, mock_json):
+        test_data = generate_test_data()
+        test_data['savings_goal'] = 'LOTS OF MONEY'
+        mock_json.return_value = test_data
+        
+        with self.assertRaises(DataImportError) as context:
+            sim_data = SimData()
+
+        expected_err = 'Savings Goal must be a valid number.'
+        self.assertEqual(expected_err, str(context.exception))
+
+    @patch('finsim.sim_data.SimData._validate_people')
+    @patch('finsim.sim_data.SimData._validate_expenses')
+    def test_process__missing_savings_goal(self, mock_val_exp, mock_val_people, mock_json):
+        test_data = generate_test_data()
+        del test_data['savings_goal']
+        mock_json.return_value = test_data
+        
+        sim_data = SimData()
+
+        self.assertIsNone(sim_data.savings_goal)
+    
 
     def test_process_mode__ok_single(self, mock_json):
         test_data = generate_test_data()

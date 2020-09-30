@@ -50,7 +50,7 @@ class TestDebts(TestCase):
 
         self.assertListEqual(debt_group.recently_cleared, [])
 
-    def test_get_active(self, mock_debt_init):
+    def test_to_list__active_only(self, mock_debt_init):
         mock_loan = Mock()
         mock_loan.active = True
         mock_credit = Mock()
@@ -58,10 +58,47 @@ class TestDebts(TestCase):
         mock_debt_init.side_effect = [mock_loan, mock_credit]
         debt_group = Debts(generate_test_data())
 
-        result = debt_group.get_active()
+        result = debt_group.to_list(active_only=True)
 
-        self.assertListEqual(result, [mock_loan])
+    def test_to_list__all(self, mock_debt_init):
+        mock_loan = Mock()
+        mock_loan.active = True
+        mock_credit = Mock()
+        mock_credit.active = False
+        mock_debt_init.side_effect = [mock_loan, mock_credit]
+        debt_group = Debts(generate_test_data())
 
+        result = debt_group.to_list(active_only=False)
+
+        self.assertListEqual(result, [mock_loan, mock_credit])
+
+    def test_to_string(self, mock_debt_init):
+        test_data = generate_test_data()
+        loan = Debt(test_data[0])
+        credit = Debt(test_data[1])
+        mock_debt_init.side_effect = [loan, credit]
+        debt_group = Debts(test_data)
+
+        result = debt_group.to_string()
+
+        expected_string = (
+            '\tLoan from Friend:  £1000\n' +
+            '\tCredit Card:       £1500\n'
+        )
+        self.assertEqual(result, expected_string)
+
+    def test_to_string__empty(self, mock_debt_init):
+        test_data = generate_test_data()
+        loan = Debt(test_data[0])
+        loan.active = False
+        credit = Debt(test_data[1])
+        credit.active = False
+        mock_debt_init.side_effect = [loan, credit]
+        debt_group = Debts(test_data)
+
+        result = debt_group.to_string()
+
+        self.assertEqual(result, '')
 
 class TestDebt(TestCase):
 

@@ -5,7 +5,7 @@ from decimal import Decimal
 from finsim.simulation import Simulation
 from test_data import generate_test_data
 
-def generate_data_mock(group_mode=True):
+def generate_data_mock(group_mode=True, savings_goal='10000'):
     data = generate_test_data()
     mock_data = Mock()
     mock_data.group_mode = group_mode
@@ -14,6 +14,10 @@ def generate_data_mock(group_mode=True):
         del data['group']
 
     mock_data.get_people.return_value = data['people']
+    if savings_goal is not None:
+        mock_data.savings_goal = Decimal(savings_goal)
+    else:
+        mock_data.savings_goal = None
    
     return mock_data
 
@@ -26,6 +30,7 @@ class TestSimulation(TestCase):
         simulation = Simulation(mock_data)
 
         self.assertTrue(simulation.group_mode)
+        self.assertEqual(simulation.savings_goal, Decimal('10000'))
         mock_group_init.assert_called_once()
         mock_person_init.assert_not_called()
 
@@ -34,8 +39,20 @@ class TestSimulation(TestCase):
         simulation = Simulation(mock_data)
 
         self.assertFalse(simulation.group_mode)
+        self.assertEqual(simulation.savings_goal, Decimal('10000'))
         mock_person_init.assert_called_once()
         mock_group_init.assert_not_called()
+
+    @patch('finsim.simulation.UI')
+    def test_init__goal_not_provided(self, mock_ui, mock_group_init, mock_person_init):
+        mock_data = generate_data_mock(group_mode=True, savings_goal=None)
+        mock_ui.obtain_savings_goal.return_value = Decimal('25000')
+        simulation = Simulation(mock_data)
+
+        self.assertEqual(simulation.savings_goal, Decimal('25000'))
+        mock_group_init.assert_called_once()
+        mock_person_init.assert_not_called()
+        mock_ui.obtain_savings_goal.assert_called_once()
 
     @patch('finsim.simulation.Simulation._step_forward')
     def test_simulate__single_loop(self, mock_step, *_):
@@ -222,23 +239,3 @@ class TestSimulation(TestCase):
         
         result = simulation._achieved_goal()
         self.assertFalse(result)
-
-
-
-
-
-
-
-
-
-    """ def test_simulate__first_month(self, mock_group_init, _)
-        mock_group = Mock()
-        mock_group.total_saved.return_value = Decimal('1000')
-        mock_group_init.return_value = mock_group
-
-        mock_data = generate_data_mock()
-        simulation = Simulation(mock_data)
-        simulation.savings_goal = Decimal('1000')
-        simulation.simulate()
-
-        mock_group. """

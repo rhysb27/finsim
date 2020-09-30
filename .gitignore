@@ -1,6 +1,7 @@
 venv/
 **/__pycache__/
 .coverage
+.pytest_cache/
 
 # OS/IDE stuff
 .DS_Store

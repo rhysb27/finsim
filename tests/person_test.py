@@ -41,13 +41,15 @@ class TestPerson(TestCase):
         self.assertEqual(person.disposable_income, Decimal('450'))
         mock_strat.assert_called_once()
 
-    @patch('finsim.person.ui')
-    def test_strategise__initial(self, mock_ui, *mocks):
+    @patch('finsim.person.UI')
+    def test_strategise__initial(self, mock_ui_init, *mocks):
         mock_strategy = {
             'savings': { 'MOCK ONE' },
             'debts': { 'MOCK TWO '} 
         }
+        mock_ui = Mock()
         mock_ui.obtain_initial_strategy.return_value = mock_strategy
+        mock_ui_init.return_value = mock_ui
         mock_savings = Mock()
         mock_savings_init = mocks[2]
         mock_savings_init.return_value = mock_savings
@@ -66,8 +68,8 @@ class TestPerson(TestCase):
         mock_debts.reset_recently_cleared.assert_called_once()
         self.assertFalse(person.updated)
 
-    @patch('finsim.person.ui')
-    def test_strategise__new(self, mock_ui, *mocks):
+    @patch('finsim.person.UI')
+    def test_strategise__new(self, mock_ui_init, *mocks):
         mock_new_strategy = {
             'savings': { 'MOCK THREE' },
             'debts': { 'MOCK FOUR '} 
@@ -76,7 +78,9 @@ class TestPerson(TestCase):
             'savings': { 'MOCK ONE' },
             'debts': { 'MOCK TWO '} 
         }
+        mock_ui = Mock()
         mock_ui.obtain_new_strategy.return_value = mock_new_strategy
+        mock_ui_init.return_value = mock_ui
         mock_savings = Mock()
         mock_savings_init = mocks[2]
         mock_savings_init.return_value = mock_savings

@@ -41,6 +41,18 @@ class SimData:
     def _process(self):
         self._process_mode()
         self._validate_people(self.data['people'])
+        goal = self.data.get('savings_goal', None)
+        if goal is not None:
+            try:
+                self.savings_goal = decimalise(goal)
+                if self.savings_goal <= 0:
+                    error_msg = 'Savings Goal must be greater than Zero.'
+                    raise DataImportError(error_msg)
+            except InvalidOperation:
+                error_msg = 'Savings Goal must be a valid number.'
+                raise DataImportError(error_msg)
+        else:
+            self.savings_goal = None
         if self.group_mode == True:
             group_expenses = self.data['group']['expenses']
             self._validate_expenses(group_expenses)

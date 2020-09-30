@@ -1,5 +1,6 @@
 from finsim.group import Group
 from finsim.person import Person
+from finsim.ui import UI
 
 class Simulation:
     def __init__(self, data):
@@ -9,13 +10,21 @@ class Simulation:
         else:
             self.model = Person(data.get_people()[0])
         self.month = 0
-        self._assign_savings_goal()
+
+        goal_from_data = data.savings_goal
+        if goal_from_data is not None:
+            self.savings_goal = goal_from_data
+        else:
+            self.savings_goal = UI.obtain_savings_goal()
 
     def simulate(self):
         goal_met = False
         while not goal_met:
             self.month += 1
             goal_met = self._step_forward()
+        # TODO: Construct and save final report
+        UI.end(self.month)
+        
         
     def _step_forward(self):
         if (self.month % 12) == 1:
@@ -27,6 +36,7 @@ class Simulation:
 
         if (self.month % 12) == 0:
             self.model.end_year()
+            UI.end_year(self.model, self.month // 12)
         else:
             if self.model.updated:
                 self.model.strategise()
@@ -35,9 +45,4 @@ class Simulation:
 
     def _achieved_goal(self):
         return self.model.total_saved() >= self.savings_goal
-
-    def _assign_savings_goal(self):
-        # TODO: Collect from user
-        # TODO: Though, allow predefinition using the datafile
-        self.savings_goal = 45000
         

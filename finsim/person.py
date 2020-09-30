@@ -1,4 +1,4 @@
-from finsim import ui
+from finsim.ui import UI
 from finsim.debts import Debts
 from finsim.expenses import Expenses
 from finsim.payroll import Payroll
@@ -10,7 +10,7 @@ class Person:
         self.name = person_data['name']
         self.payroll = Payroll(person_data['salary'])
         self.expenses = Expenses(person_data['expenses'])
-        self.savings_accounts = SavingsAccounts(person_data['savings'])
+        self.savings = SavingsAccounts(person_data['savings'])
         self.debts = Debts(person_data['debts'])
 
         self.joint_contrib = None
@@ -26,6 +26,7 @@ class Person:
         self.strategise()
 
     def strategise(self):
+        ui = UI()
         if self.current_strategy is None:
             new_strategy = ui.obtain_initial_strategy(self)
         else:
@@ -33,22 +34,23 @@ class Person:
             self.outdated_strategies.append(self.current_strategy)
         
         self.current_strategy = new_strategy
-        self.savings_accounts.apply_strategy(new_strategy['savings'])
-        self.debts.apply_strategy(new_strategy['debts'])
+        self.savings.apply_strategy(new_strategy['savings'])
+        if new_strategy.get('debts', None) is not None:
+            self.debts.apply_strategy(new_strategy['debts'])
         self.debts.reset_recently_cleared()
         self.updated = False
 
     def simulate_month(self):
         self.debts.pay()
-        self.savings_accounts.deposit()
+        self.savings.deposit()
         if len(self.debts.recently_cleared) > 0:
             self.updated = True
 
     def total_saved(self):
-        return self.savings_accounts.total_saved()
+        return self.savings.total_saved()
 
     def end_year(self):
         self.payroll.payrise()
         self.expenses.inflate()
         self.debts.end_year()
-        self.savings_accounts.end_year()
+        self.savings.end_year()

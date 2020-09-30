@@ -11,8 +11,8 @@ class AccountGroup(ABC):
             self.account_dict[account['name']] = new_account
 
     def apply_strategy(self, strategy):
-        for name, payment in strategy.items():
-            self.account_dict[name].payment_amount = payment
+        for item in strategy:
+            self.account_dict[item['name']].payment_amount = item['payment']
 
     def begin_year(self):
         for name, account in self.account_dict.items():

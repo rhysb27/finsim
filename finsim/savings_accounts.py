@@ -11,6 +11,9 @@ class SavingsAccounts(AccountGroup):
         for name, account in self.account_dict.items():
             account.deposit()
 
+    def to_list(self):
+        return [ a for k, a in self.account_dict.items() ]
+
     def total_saved(self):
         return sum([v.balance for k, v in self.account_dict.items()])
 
@@ -30,7 +33,7 @@ class SavingsAccount(Account):
         self._update_reports('Payments / Deposits', self.payment_amount)
 
 
-    # -- Private Methods ----------------------------------
+    # -- Private Methods --------------------------------------------
 
     def _init_report(self):
         report = super()._init_report()

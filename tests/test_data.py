@@ -1,5 +1,6 @@
 def generate_test_data():
     return { 
+        'savings_goal': '10000',
         'people': [
             {
                 'name': 'Alice',

@@ -40,10 +40,10 @@ class TestAccounts(TestCase):
         mock_loan = Mock()
         mock_credit = Mock()
         mock_account_init.side_effect = [mock_loan, mock_credit]
-        test_strategy = {
-            'Loan from Friend': Decimal('100'),
-            'Credit Card': Decimal('125')
-        }
+        test_strategy = [
+            { 'name': 'Loan from Friend', 'payment': Decimal('100') },
+            { 'name': 'Credit Card',      'payment': Decimal('125') }
+        ]
 
         debt_group = Debts(generate_test_data())
         debt_group.apply_strategy(test_strategy)
