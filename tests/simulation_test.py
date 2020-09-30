@@ -55,22 +55,26 @@ class TestSimulation(TestCase):
         mock_ui.obtain_savings_goal.assert_called_once()
 
     @patch('finsim.simulation.Simulation._step_forward')
-    def test_simulate__single_loop(self, mock_step, *_):
+    @patch('finsim.simulation.UI')
+    def test_simulate__single_loop(self, mock_ui, mock_step, *_):
         mock_data = generate_data_mock()
         simulation = Simulation(mock_data)
         mock_step.return_value = True
         simulation.simulate()
 
+        mock_ui.end.assert_called_once()
         mock_step.assert_called_once()
         self.assertEqual(simulation.month, 1)
 
     @patch('finsim.simulation.Simulation._step_forward')
-    def test_simulate__n_loop(self, mock_step, *_):
+    @patch('finsim.simulation.UI')
+    def test_simulate__n_loop(self, mock_ui, mock_step, *_):
         mock_data = generate_data_mock()
         simulation = Simulation(mock_data)
         mock_step.side_effect = ([ False ] * 9) + [ True ]
         simulation.simulate()
 
+        mock_ui.end.assert_called_once()
         self.assertEqual(mock_step.call_count, 10)
         self.assertEqual(simulation.month, 10)
 

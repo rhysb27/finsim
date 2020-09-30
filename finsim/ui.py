@@ -35,9 +35,15 @@ class UI:
     @staticmethod
     def end(total_months):
         years = total_months // 12
+        year_label = 'year' if years == 1 else 'years'
         months = total_months % 12
+        month_label = 'month' if months == 1 else 'months'
         print(UI._heading('END SIMULATION', level=1))
-        print('Goal achieved in {} years and {} months.\n'.format(years, months))
+        print('Goal achieved in {} {} and {} {}.\n'.format(
+            years,
+            year_label,
+            months,
+            month_label))
         # TODO: Reference final report save location.
 
     # -- Initialisation Functions -----------------------------------
