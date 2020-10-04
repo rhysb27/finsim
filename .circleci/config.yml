@@ -1,0 +1,49 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2.1
+jobs:
+  build_and_test:
+    docker:
+    - image: circleci/python:3.6.1
+
+    working_directory: ~/finsim
+
+    steps:
+    - checkout
+
+    # Download and cache dependencies
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "requirements-dev.txt" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+
+    - run:
+        name: Install dependencies
+        command: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install -r requirements-dev.txt
+    - save_cache:
+        paths:
+        - ./venv
+        key: v1-dependencies-{{ checksum "requirements-dev.txt" }}
+
+    - run:
+        name: Run Unit Tests
+        command: |
+          . venv/bin/activate
+          mkdir test-reports
+          python3 -m pytest --cov-report term-missing --junitxml=test-reports/unit/junit.xml --cov=finsim tests
+          codecov
+
+    - store_test_results:
+        path: test-reports
+
+workflows:
+  version: 2
+  test_or_deploy:
+    jobs:
+      - build_and_test

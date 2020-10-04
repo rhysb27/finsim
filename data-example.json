@@ -16,7 +16,7 @@
             "debts": [
                 {
                     "name": "Credit Card",
-                    "starting_balance": "2000.00",
+                    "starting_balance": "2000.00"
                 },
                 {
                     "name": "Overdraft",
