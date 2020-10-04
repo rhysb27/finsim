@@ -1,5 +1,8 @@
 # finsim - Personal Financial Simulator
 
+[![CircleCI](https://circleci.com/gh/rhysb27/finsim/tree/master.svg?style=shield)](https://circleci.com/gh/rhysb27/finsim/tree/master)
+[![codecov](https://codecov.io/gh/rhysb27/finsim/branch/master/graph/badge.svg)](https://codecov.io/gh/rhysb27/finsim)
+
 ## Project Overview
 
 Finsim is a configurable simulation which can help individuals or groups of people estimate how long it will take them to reach a given Savings target. Simulation data is provided via a `data.json` file in the project's root directory, allowing the simulation to be executed with just a couple of lines of code. The simulation will initially and periodically prompt the user to enter a "financial strategy" for each person included in the simulation, to allow fine-grained control over monthly savings deposits and debt repayments.
