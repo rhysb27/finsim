@@ -18,7 +18,6 @@ def generate_test_data():
                     {
                         'name': 'Credit Card',
                         'starting_balance': '2000.00',
-                        'interest_rate': '0.00'
                     },
                     {
                         'name': 'Overdraft',
@@ -29,9 +28,7 @@ def generate_test_data():
                 'savings': [
                     {
                         'name': 'Savings Acc.',
-                        'interest_rate': '1.00',
-                        'starting_balance': '0.00',
-                        'type': 'traditional'
+                        'interest_rate': '1.00'
                     },
                     {
                         'name': 'Lifetime ISA',
@@ -44,8 +41,7 @@ def generate_test_data():
             {
                 'name': 'Bob',
                 'salary': {
-                    'base_salary': '18000',
-                    'pension': '0.0'
+                    'base_salary': '18000'
                 },
                 'expenses': {
                     'monthly': [
@@ -55,8 +51,7 @@ def generate_test_data():
                 'debts': [
                     {
                         'name': 'Overdraft',
-                        'starting_balance': '1000.00',
-                        'interest_rate': '0.00'
+                        'starting_balance': '1000.00'
                     }
                 ],
                 'savings': [

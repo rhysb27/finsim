@@ -6,7 +6,7 @@ Finsim is a configurable simulation which can help individuals or groups of peop
 
 ## The Data File
 
-Coming soon ...
+The simulation relies on a JSON file to be supplied, which declares all data to be used by the program. It includes salaries, expenses, debts, saving accounts etc. Read the "[Building Your Data File](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md)" guide for full details on how to prepare your file.
 
 ## The UI
 
