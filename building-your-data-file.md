@@ -25,8 +25,8 @@ The simulation mode will be determined by the top level of the `data.json` file.
 }
 ```
 
-* `people` (required) - a list of at least one **Person** objects.
-* `group` - a **Group** object, required if `people` has a length of two or greater.
+* `people` (required) - a list of at least one [**Person**](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md#person) objects.
+* `group` - a [**Group**](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md#group) object, required if `people` has a length of two or greater.
 * `savings_goal` - `string` representing the overall savings target for the simulation. If not provided, the User Interface will prompt for the value during the simulation's initialisation. Must be greater than zero.
 
 ---
@@ -46,16 +46,16 @@ Each **Person** object represents an individual person's financial attributes.
 ```
 
 * `name` (required) - the person's preferred name. Uniqueness is not a requirement but is highly recommended.
-* `salary` (required) - a **Salary** object, representing this person's annual income, pension and payrise rate.
-* `savings` (required) - a list of at least one **Savings Account** objects, each of which represents a savings account for which this person is personally responsible.
-* `expenses` (required) - an **Expenses** object, representing this person's _individual_ expenses.
-* `debts` - a list of **Debt** objects, each of which represents a debt for which this person is personally responsible.
+* `salary` (required) - a [**Salary**](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md#salary) object, representing this person's annual income, pension and payrise rate.
+* `savings` (required) - a list of at least one [**Savings Account**](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md#savings-account) objects, each of which represents a savings account for which this person is personally responsible.
+* `expenses` (required) - an [**Expenses**](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md#expenses) object, representing this person's _individual_ expenses.
+* `debts` - a list of [**Debt**](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md#debt) objects, each of which represents a debt for which this person is personally responsible.
 
 ---
 
 ## Group
 
-The **Group** object is required when more than one **Person** object is defined, and represents the data tying each **Person** together.
+The **Group** object is required when more than one **Person** object is defined, and represents the data tying each person together.
 
 ```
 {
@@ -64,7 +64,7 @@ The **Group** object is required when more than one **Person** object is defined
 }
 ```
 
-* `expenses` (required) - an **Expenses** object, representing the group's *shared* expenses.
+* `expenses` (required) - an [**Expenses**](https://github.com/rhysb27/finsim/blob/master/building-your-data-file.md#expenses) object, representing the group's *shared* expenses.
 * `proportional_expenses` - `true` or `false`, configures how shared expenses are divided among the group:
   * `true` : expenses are shared between each person in the group proportional to their salary.
   * `false` (default) : expenses are shared _equally_ between each person, regardless of salary differences.
