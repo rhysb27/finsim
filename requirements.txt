@@ -1,2 +1,2 @@
 -i https://pypi.org/simple
-python-dotenv==0.14.0
+python-dotenv==0.15.0
